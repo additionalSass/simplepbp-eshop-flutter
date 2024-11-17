@@ -88,22 +88,23 @@ Cookie perlu dibagikan ke semua komponen supaya kita bisa memastikan bahwa ada s
    - Lihat tutorial
    - Melibatkan model Item dalam Dart, kita melakukan fetchItem. Dan membuat hasilnya menjadi instance dari Item dalam Dart dan menampilkannya di list. 
    
-   ```
-   Future<List<Item>> fetchItem (CookieRequest request) async {
-    final response = await request
-        .get('https://dusty-penguin-fasilkomui-750583cd.koyeb.app/json/');
-    var data = response;
+    Implementasi Fungsi `fetchItem` dalam Kode :
+```dart
+Future<List<Item>> fetchItem(CookieRequest request) async {
+  final response = await request.get('https://dusty-penguin-fasilkomui-750583cd.koyeb.app/json/');
+  var data = response;
 
-    // Melakukan konversi data json menjadi object Item
-    List<Item> listItem = [];
-    for (var d in data) {
-      if (d != null) {
-        listItem.add(Item.fromJson(d));
-      }
+  // Melakukan konversi data JSON menjadi objek Item
+  List<Item> listItem = [];
+  for (var d in data) {
+    if (d != null) {
+      listItem.add(Item.fromJson(d));
     }
-    return listItem;
   }
-  ``` 
+  return listItem;
+}
+```
+
 6. Menangani Respon dari Backend:
    - Response JSON yang diterima backend Django bisa divalidasi.
    - Data yang relevan ditampilkan.
