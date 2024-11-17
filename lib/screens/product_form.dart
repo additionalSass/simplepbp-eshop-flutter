@@ -1,5 +1,9 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:simplepbp_eshop_flutter/screens/menu.dart';
 import 'package:simplepbp_eshop_flutter/widgets/left_drawer.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
 
 class ProductFormPage extends StatefulWidget {
   const ProductFormPage({super.key});
@@ -17,6 +21,7 @@ class _ProductFormPageState extends State<ProductFormPage> {
 
   @override
   Widget build(BuildContext context) {
+    final request = context.watch<CookieRequest>();
     return Scaffold(
       appBar: AppBar(
         title: const Text(
@@ -148,52 +153,47 @@ class _ProductFormPageState extends State<ProductFormPage> {
                     backgroundColor: WidgetStateProperty.all(
                         Theme.of(context).colorScheme.primary),
                   ),
-                  onPressed: () {
+                  onPressed: () async {
                     if (_formKey.currentState!.validate()) {
-                      // Set default description if empty
-                      if (_description.isEmpty) {
-                        _description = 'Default';
-                      }
-
-                      showDialog(
-                        context: context,
-                        builder: (context) {
-                          return AlertDialog(
-                            title: const Text('Product berhasil disimpan.'),
-                            content: SingleChildScrollView(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text('Name: $_name'),
-                                  Text('Price: $_price'),
-                                  Text('Description: $_description'),
-                                  Text('Stocks: $_amount'),
-                                ],
-                              ),
-                            ),
-                            actions: [
-                              TextButton(
-                                child: const Text('OK'),
-                                onPressed: () {
-                                  Navigator.pop(context);
-                                  _formKey.currentState!.reset();
-                                  setState(() {
-                                    _name = "";
-                                    _price = 0;
-                                    _description = "Default";
-                                    _amount = 0;
-                                  });
-                                },
-                              ),
-                            ],
+                      try {
+                        final response = await request.postJson(
+                          "https://dusty-penguin-fasilkomui-750583cd.koyeb.app/create-item-flutter/",
+                          jsonEncode(<String, String>{
+                            'name': _name,
+                            'price': _price.toString(),
+                            'description': _description,
+                            'stocks': _amount.toString(),
+                          }),
+                        );
+                        if (response['status'] == 'success') {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            const SnackBar(
+                                content: Text("Item successfully created!")),
                           );
-                        },
-                      );
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) => const HomePage()),
+                          );
+                        } else {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                                content: Text(
+                                    response['message'] ?? "Error occurred.")),
+                          );
+                        }
+                      } catch (e) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text(
+                                  "An error occurred while creating the item.")),
+                        );
+                      }
                     }
                   },
                   child: const Text(
                     "Simpan",
-                    style: TextStyle(color: Colors.white),
+                    style: TextStyle(color: Color.fromARGB(255, 255, 240, 255)),
                   ),
                 ),
               ),

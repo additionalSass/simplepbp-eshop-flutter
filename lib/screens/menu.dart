@@ -1,13 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
 import 'package:simplepbp_eshop_flutter/screens/product_form.dart';
+import 'package:simplepbp_eshop_flutter/screens/list_itementry.dart';
+import 'package:simplepbp_eshop_flutter/screens/login.dart';
 import 'package:simplepbp_eshop_flutter/widgets/left_drawer.dart';
 
 class HomePage extends StatelessWidget {
-  HomePage({super.key});
+  const HomePage({super.key});
   void _showSnackbar(BuildContext context, String message) {
     final snackBar = SnackBar(
       content: Text(message),
-      duration: Duration(seconds: 4),
+      duration: const Duration(seconds: 4),
     );
     var currMessenger = ScaffoldMessenger.of(context);
     currMessenger.removeCurrentSnackBar();
@@ -16,9 +20,10 @@ class HomePage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final request = context.watch<CookieRequest>();
     final ButtonStyle buttonStyle = ElevatedButton.styleFrom(
-      minimumSize: Size(40, 40),
-      textStyle: TextStyle(fontSize: 16),
+      minimumSize: const Size(40, 40),
+      textStyle: const TextStyle(fontSize: 16),
     );
 
     return Scaffold(
@@ -39,14 +44,17 @@ class HomePage extends StatelessWidget {
                 backgroundColor:
                     WidgetStateProperty.all<Color>(Colors.lightBlueAccent),
               ),
-              icon: Icon(Icons.view_list),
-              label: Text('Lihat Daftar Produk'),
+              icon: const Icon(Icons.view_list),
+              label: const Text('Lihat Daftar Produk'),
               onPressed: () {
-                _showSnackbar(
-                    context, 'Kamu telah menekan tombol Lihat Daftar Produk');
+                Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const ItemEntryPage(),
+                    ));
               },
             ),
-            SizedBox(width: 25), // Spacing dari kedua button
+            const SizedBox(width: 25), // Spacing dari kedua button
 
             // Button 2 untuk Tambah Product
             ElevatedButton.icon(
@@ -54,18 +62,18 @@ class HomePage extends StatelessWidget {
                 backgroundColor:
                     WidgetStateProperty.all<Color>(Colors.lightGreenAccent),
               ),
-              icon: Icon(Icons.add_shopping_cart),
-              label: Text('Tambah Product'),
+              icon: const Icon(Icons.add_shopping_cart),
+              label: const Text('Tambah Product'),
               // Bagian redirection ke ProductFormPage
               onPressed: () {
                 Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => ProductFormPage(),
+                      builder: (context) => const ProductFormPage(),
                     ));
               },
             ),
-            SizedBox(width: 25),
+            const SizedBox(width: 25),
 
             // Button 3 untuk Logout
             ElevatedButton.icon(
@@ -73,10 +81,34 @@ class HomePage extends StatelessWidget {
                 backgroundColor:
                     WidgetStateProperty.all<Color>(Colors.redAccent),
               ),
-              icon: Icon(Icons.logout),
-              label: Text('Logout'),
-              onPressed: () {
-                _showSnackbar(context, 'Kamu telah menekan tombol Logout');
+              icon: const Icon(Icons.logout),
+              label: const Text('Logout'),
+              onPressed: () async {
+                await request.logout(
+                    "https://dusty-penguin-fasilkomui-750583cd.koyeb.app/auth/logout/");
+
+                if (!request.loggedIn) {
+                  // Redirect to Login Page
+                  if (context.mounted) {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                          builder: (context) => const LoginPage()),
+                      (route) => false,
+                    );
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(
+                          content: Text('You have been logged out.')),
+                    );
+                  }
+                } else {
+                  // Handle Logout Error (optional)
+                  if (context.mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      const SnackBar(content: Text('Failed to log out.')),
+                    );
+                  }
+                }
               },
             ),
           ],

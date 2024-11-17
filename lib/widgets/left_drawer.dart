@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:simplepbp_eshop_flutter/screens/menu.dart';
 import 'package:simplepbp_eshop_flutter/screens/product_form.dart';
+import 'package:simplepbp_eshop_flutter/screens/list_itementry.dart';
 
 class LeftDrawer extends StatelessWidget {
   const LeftDrawer({super.key});
@@ -46,7 +47,7 @@ class LeftDrawer extends StatelessWidget {
               Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => HomePage(),
+                    builder: (context) => const HomePage(),
                   ));
             },
           ),
@@ -58,8 +59,19 @@ class LeftDrawer extends StatelessWidget {
               Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => ProductFormPage(),
+                    builder: (context) => const ProductFormPage(),
                   ));
+            },
+          ),
+          ListTile(
+            leading: const Icon(Icons.view_list),
+            title: const Text('Daftar Product'),
+            onTap: () {
+              // Route menu ke halaman List Item
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const ItemEntryPage()),
+              );
             },
           ),
         ],

@@ -1,9 +1,120 @@
 # simplepbp_eshop_flutter
 
-A new Flutter project. Tugas 8
+A new Flutter project. Tugas 9
 
-## Menjawab beberapa pertanyaan berikut pada README.md pada root_folder.
+## Menjawab beberapa pertanyaan Tugas 9 berikut pada README.md pada root_folder.
 
+### 1. Mengapa perlu membuat model dalam Flutter untuk pengambilan atau pengiriman data JSON?
+
+Model dalam Flutter diperlukan untuk memetakan data JSON yang diterima dari server ke dalam struktur yang mudah diolah oleh aplikasi untuk menampilkannya di dalam list. Berikut alasannya:
+
+Model dalam Flutter memastikan data memiliki struktur yang sama, dan mempermudah processing dan manipulasi data di Flutter. Dan dengan model, kita dapat memvalidasi apakah data yang diterima atau dikirimkan sesuai dengan tipe data yang diharapkan. Kemudian, model membantu memperjelas dalam source code konversi data antara format JSON dan objek Dart.
+
+Jika tidak dilakukan pembuatan model, akan lebih rawan error dengan map Map<String, dynamic> dan kita harus mengakses data dengan key-string saat mau membaca list. Kemudian, tipe data yang berkaitan tidak bisa dengan mudah divalidasi.
+
+### 2. Fungsi dari Library `http` dalam Tugas Ini
+Library `http` digunakan untuk melakukan komunikasi HTTP, yaitu mengirimkan request dan menerima response dari server.
+
+Fungsi dalam Konteks `pbp_django_auth`: Membuat Permintaan HTTP: Library `http` mendasari fungsi-fungsi yang ada di `pbp_django_auth`, seperti `login`, `logout`, dan `postJson`, misalnya ada bagian-bagian seperti `http.Response response` dan `import 'package:http/http.dart' as http;` yang dibutuhkan untuk pbp_django_auth. Library `http` ini memproses response untuk Client yang diterima dari server, mencakup  header, data JSON, status code.
+
+
+### 3. Fungsi dari `CookieRequest`
+`CookieRequest` adalah kelas yang digunakan oleh `pbp_django_auth` untuk menangani autentikasi berbasis cookie.
+Fungsinya adalah menyimpan session cookie untuk autentikasi, mengelola login, dan menyertakan cookie saat request ke server aplikasi Django.
+
+Cookie perlu dibagikan ke semua komponen supaya kita bisa memastikan bahwa ada state login yang diakses setiap widget dan semua komponen widget dapat menggunakan instance yang sama dan efisien dalam mempertahankan login.
+
+### 4. Bagaimana Mekanisme Pengiriman Data dari Input hingga Ditampilkan pada Flutter?
+1. Input Data di Flutter:
+   - Pengguna mengisi form dari item_entry di Flutter (contoh field : name, price).
+   - Data ini dikirim secara async melalui `onPressed` untuk tombol save menggunakan fungsi seperti `postJson` untuk `request`.
+
+2. Pengiriman Data ke Django:
+   - Flutter akan mengirimkan request HTTP POST dengan data JSON ke endpoint aplikasi web Django.
+   - Endpoint Django membaca body request json tersebut dan menyimpan data Item ke database sesuai dengan kode dari fungsi views yang dipanggil sesuai dengan URL . 
+
+3. Respon dari Backend:
+   - Django akan mengirimkan response dalam format JSON (contoh: `{"status": "success", "message": "Item created successfully"}`).
+
+4. Menampilkan di Flutter: 
+   - Aplikasi Flutter membaca response JSON.
+   - Data response di-map ke model Item dalam Dart, lalu ditampilkan menggunakan widget seperti `ListView`.
+
+### 5. Mekanisme Autentikasi dari Login, Register, hingga Logout
+1. Login:
+   - Input Data: Pengguna memasukkan username dan password di Flutter.
+   - Kirim ke Backend: Data dikirim melalui request POST ke endpoint Django `/auth/login/`.
+   - Verifikasi di Django:
+     - Django memeriksa apakah username dan password valid.
+     - Jika valid, Django mengirimkan session cookie sebagai response.
+   - Menyimpan Cookie: Flutter menyimpan cookie menggunakan `CookieRequest`.
+   - Navigasi: Pengguna melihat halaman utama HomePage jika login berhasil.
+
+2. Register:
+   - Input Data: Pengguna mengisi data akun (username, password).
+   - Kirim ke Backend: Data dikirim melalui request POST ke endpoint Django `/auth/register/`.
+   - Simpan di Database: Django memvalidasi data dan menyimpan pengguna baru di database.
+   - Response: Django mengirimkan status keberhasilan, dan Flutter menampilkan pesan kepada pengguna.
+
+3. Logout:
+   - Request Logout: Flutter mengirimkan request GET/POST ke endpoint Django `/auth/logout/`.
+   - Hapus Session:** Django menghapus session cookie di server.
+   - Navigasi: Flutter menghapus state login dan memindahkan pengguna ke halaman login.
+
+---
+
+### 6. Implementasi Checklist secara Step-by-Step 
+
+1. Mempersiapkan Backend Django untuk Integrasi:
+   - Menambahkan django-cors-headers  dan mengubah settings sesuai dengan Tutorial 
+   - Membuat app baru di dalam project bernama `authentication` yang berisi views dan urls untuk login, logout, register secara khusus untuk aplikasi Flutter
+   - Menambahkan views dan urls untuk menangani operasi CRUD Flutter (contoh: `create_item_entry_flutter`) di dalam app main.
+   - Menyediakan endpoint-endpoint sangat sederhana di dalam Django.
+   - Memastikan bahwa dusty-penguin-fasilkomui-750583cd.koyeb.app ada sebagai domain name.
+
+2. Membuat Model di Flutter: 
+   - Membuat kelas model Dart baru untuk data JSON (contoh: `Item`) berdasarkan model dalam Django.
+   - Menambahkan fungsi untuk deserialisasi dan serialisasi.
+
+3. Mengintegrasikan `pbp_django_auth`:
+   - Menambahkan dependency `pbp_django_auth` di proyek Flutter.
+   - Membuat `CookieRequest` dan melakukan sharing menggunakan `Provider` di dalam file-file yang ada.
+
+4. Menambahkan Halaman Login dan Register, dan Mengubah Halaman Form:
+   - Lihat tutorial
+   - Secara umum, melibatkan penulisan fungsi `onPressed` untuk mengirim data ke backend menggunakan `CookieRequest` yang merupakan bagian dari `pbp_django_auth`.
+
+5. Menambahkan Halaman Daftar Item:
+   - Lihat tutorial
+   - Melibatkan model Item dalam Dart, kita melakukan fetchItem. Dan membuat hasilnya menjadi instance dari Item dalam Dart dan menampilkannya di list. 
+   
+   ```
+   Future<List<Item>> fetchItem (CookieRequest request) async {
+    final response = await request
+        .get('https://dusty-penguin-fasilkomui-750583cd.koyeb.app/json/');
+    var data = response;
+
+    // Melakukan konversi data json menjadi object Item
+    List<Item> listItem = [];
+    for (var d in data) {
+      if (d != null) {
+        listItem.add(Item.fromJson(d));
+      }
+    }
+    return listItem;
+  }
+  ``` 
+6. Menangani Respon dari Backend:
+   - Response JSON yang diterima backend Django bisa divalidasi.
+   - Data yang relevan ditampilkan.
+
+7. Deployment dan CORS:
+   - Deploy repository Github di Koyeb
+   - Menguji aplikasi dengan server Django yang dideploy (di Koyeb) dan memastikan CORS aman.
+
+Dengan langkah-langkah ini, Tugas 9 selesai.
+
+## Menjawab beberapa pertanyaan Tugas 8 berikut pada README.md pada root_folder.
 
 ### Apa kegunaan const di Flutter? Jelaskan apa keuntungan ketika menggunakan const pada kode Flutter. Kapan sebaiknya kita menggunakan const, dan kapan sebaiknya tidak digunakan?
 
